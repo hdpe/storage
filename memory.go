@@ -50,11 +50,17 @@ func (memory *InMemory) Store(m *data.Message) (string, error) {
 
 // Count returns the number of stored messages
 func (memory *InMemory) Count() int {
+	memory.mu.Lock()
+	defer memory.mu.Unlock()
+
 	return len(memory.Messages)
 }
 
 // Search finds messages matching the query
 func (memory *InMemory) Search(kind, query string, start, limit int) (*data.Messages, int, error) {
+	memory.mu.Lock()
+	defer memory.mu.Unlock()
+
 	// FIXME needs optimising, or replacing with a proper db!
 	query = strings.ToLower(query)
 	var filteredMessages = make([]*data.Message, 0)
@@ -145,6 +151,9 @@ func (memory *InMemory) Search(kind, query string, start, limit int) (*data.Mess
 
 // List lists stored messages by index
 func (memory *InMemory) List(start int, limit int) (*data.Messages, error) {
+	memory.mu.Lock()
+	defer memory.mu.Unlock()
+
 	var messages = make([]data.Message, 0)
 
 	if len(memory.Messages) == 0 || start > len(memory.Messages) {
@@ -208,6 +217,9 @@ func (memory *InMemory) DeleteAll() error {
 
 // Load returns an individual message by storage ID
 func (memory *InMemory) Load(id string) (*data.Message, error) {
+	memory.mu.Lock()
+	defer memory.mu.Unlock()
+
 	if idx, ok := memory.MessageIDIndex[id]; ok {
 		return memory.Messages[idx], nil
 	}
